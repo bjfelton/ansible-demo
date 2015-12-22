@@ -1,0 +1,5 @@
+DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+ANSIBLE_DIR="${DIR}/ansible"
+source ${ANSIBLE_DIR}/hacking/env-setup
+export ANSIBLE_HOSTS=hosts
+export ANSIBLE_CONFIG=${DIR}/ansible.cfg

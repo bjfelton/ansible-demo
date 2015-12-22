@@ -1,0 +1,6 @@
+---
+- name: Show the cat to his box
+  hosts: tomcat
+  roles:
+  - java
+  - tomcat

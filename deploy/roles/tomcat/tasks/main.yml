@@ -1,0 +1,32 @@
+---
+- name: Create tomcat group
+  group: name={{ tomcat_group }} state=present
+
+- name: Create tomcat user
+  user: >
+    name={{ tomcat_user }}
+    group={{ tomcat_group }}
+    home={{ tomcat_home }}
+    createhome=yes
+
+- name: Download tarball
+  sudo: no
+  run_once: True
+  local_action: wget {{ tomcat_package }} -O /tmp/tomcat.tgz
+
+- name: Copy package to servers
+  copy: src=/tmp/tomcat.tgz dest=/tmp/tomcat.tgz
+  register: tarball
+
+- name: Extract tarball
+  command: tar xf /tmp/tomcat.tgz -C {{ tomcat_home }} --strip-components=1
+  when: tarball.changed == True
+
+- name: Ensure tomcat owns tomcat
+  file: >
+    owner={{ tomcat_user }}
+    group={{ tomcat_group }}
+    recurse=yes
+    state=directory
+    path={{ tomcat_home }}
+  when: tarball.changed == True

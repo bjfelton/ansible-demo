@@ -1,0 +1,23 @@
+---
+- name: Install debconf-utils
+  apt: name=debconf-utils state=present
+
+- name: Check for license acceptance
+  shell: /usr/bin/debconf-get-selections | grep -Pq "{{ jdk_package }}.*true"
+  changed_when: False
+  failed_when: False
+  ignore_errors: True
+  register: accept_check
+
+- name: Robo-accept the Oracle license agreement
+  shell: "echo {{ jdk_package }} shared/accepted-oracle-license-v1-1 select true | sudo /usr/bin/debconf-set-selections"
+  when: accept_check.rc != 0
+
+- name: Add Oracle Java 8 PPA
+  apt_repository: repo={{ apt_repo }} update_cache=yes
+
+- name: Install Java 8 JDK
+  apt: >
+    cache_valid_time=1800
+    name={{ jdk_package }}
+    state=present

@@ -1,0 +1,39 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+require 'yaml'
+VAGRANTFILE_API_VERSION = '2'
+
+SUBNET         = "192.168.42"
+
+ansible_provision = proc do |ansible|
+  ansible.playbook = '../../automate/tomcat.yml'
+  ansible.groups = {
+    'tomcat'   => ["tomcat0"],
+  }
+
+  ansible.extra_vars = {
+    tomcat_home: '/tomcat8'
+  }
+
+  ansible.limit = 'all'
+  ansible.sudo = true
+end
+
+Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+  config.vm.box = 'ubuntu/trusty64'
+  config.vm.provider "virtualbox"
+  config.ssh.insert_key = false
+
+  # You get one of these.  Because I said so.
+  config.vm.define "tomcat0" do |tc|
+    tc.vm.hostname = "tomcat0"
+    tc.vm.network :private_network, ip: "#{SUBNET}.30"
+    tc.vm.provider :virtualbox do |vb|
+      vb.customize ['modifyvm', :id, '--memory', '512']
+    end
+
+    # Run provision after the final machine is up
+    tc.vm.provision 'ansible', &ansible_provision
+  end
+end

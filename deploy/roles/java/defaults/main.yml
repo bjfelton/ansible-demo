@@ -1,0 +1,3 @@
+---
+apt_repo: "ppa:webupd8team/java"
+jdk_package: "oracle-java8-installer"

@@ -1,0 +1,6 @@
+---
+java_home: "/usr/lib/jvm/java-8-oracle"
+tomcat_app_base_dir: "/usr/local/apps"
+tomcat_group: "tomcat"
+tomcat_user: "tomcat"
+tomcat_home: "/usr/local/tomcat8"
