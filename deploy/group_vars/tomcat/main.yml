@@ -4,3 +4,11 @@ tomcat_app_base_dir: "/usr/local/apps"
 tomcat_group: "tomcat"
 tomcat_user: "tomcat"
 tomcat_home: "/usr/local/tomcat8"
+
+apps:
+  sample:
+    war_url: "https://tomcat.apache.org/tomcat-6.0-doc/appdev/sample/sample.war"
+    war_file: "sample.war"
+    http_port: 12345
+    shutdown_port: 12346
+    instance_name: 'demo'
