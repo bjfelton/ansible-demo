@@ -1,0 +1,67 @@
+---
+# TODO: This is more of a hack than I'd like.  It might work well
+#       to create this as an ansible module so that all of these variables
+#       could be gracefully fed in and/or defaulted.
+- name: Create container directories
+  file: >
+    state=directory
+    owner={{ tomcat_user }}
+    group={{ tomcat_group }}
+    path={{ base_dir }}/{{ app }}-{{ apps[app]['instance_name'] }}/{{ item }}
+  with_items:
+  - bin
+  - conf
+  - lib
+  - logs
+  - temp
+  - webapps
+
+- name: Deploy config files
+  template: >
+    owner={{ tomcat_user }}
+    group={{ tomcat_group }}
+    src={{ item }}.j2
+    dest={{ base_dir }}/{{ app }}-{{ apps[app]['instance_name'] }}/conf/{{ item }}
+    mode=0640
+  with_items:
+  - catalina.policy
+  - catalina.properties
+  - context.xml
+  - logging.properties
+  - manager.xml
+  - server.xml
+  - tomcat-users.xml
+  - web.xml
+  notify: restart app
+
+- name: Deploy control scripts
+  template: >
+    owner={{ tomcat_user }}
+    group={{ tomcat_group }}
+    src={{ item }}.j2
+    dest={{ base_dir }}/{{ app }}-{{ apps[app]['instance_name'] }}/bin/{{ item }}
+    mode=0750
+  with_items:
+  - start.sh
+  - stop.sh
+  - check.sh
+  notify: restart app
+
+# NOTE: this is not idempotent and should be appropriately guarded
+- name: Download the war
+  shell: wget {{ apps[app]['war_url'] }} -O {{ base_dir }}/{{ app }}-{{ apps[app]['instance_name'] }}/webapps/{{ apps[app]['war_file'] }}
+  notify: restart app
+
+- name: Ensure proper ownership
+  file: >
+    path={{ base_dir }}/{{ app }}-{{ apps[app]['instance_name'] }}/webapps/{{ apps[app]['war_file'] }}
+    owner={{ tomcat_user }}
+    group={{ tomcat_group }}
+
+- name: Check if app is running
+  shell: "{{ base_dir }}/{{ app }}-{{ apps[app]['instance_name'] }}/bin/check.sh"
+  failed_when: False
+  ignore_errors: True
+  register: check
+  changed_when: check.rc != 0
+  notify: restart app

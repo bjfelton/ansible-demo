@@ -1,0 +1,3 @@
+---
+- name: restart app
+  shell: "su - {{ tomcat_user }} -c \"{{ base_dir }}/{{ app }}-{{ apps[app]['instance_name'] }}/bin/stop.sh && {{ base_dir }}/{{ app }}-{{ apps[app]['instance_name'] }}/bin/start.sh\""

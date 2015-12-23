@@ -1,0 +1,62 @@
+#!/bin/bash
+
+JAVA_HOME={{ java_home }}
+CATALINA_HOME={{ tomcat_home }}
+CATALINA_BASE={{ tomcat_app_base_dir }}/{{ app }}-{{ apps[app]['instance_name'] }}
+export JAVA_HOME CATALINA_HOME CATALINA_BASE
+
+ORIG_PID=`pgrep -u tomcat -f "Dcatalina.base=${CATALINA_BASE} " -d ',' | grep -v ','`
+
+if [ -z "${ORIG_PID}" ]
+then
+  echo "{{ tomcat_app_base_dir }}/{{ app }}-{{ apps[app]['instance_name'] }} instance already stopped"
+  exit 0
+fi
+
+$CATALINA_HOME/bin/catalina.sh stop
+
+if [ $? -lt 0 ]
+then
+  echo "ERROR: '${CATALINA_HOME}/bin/catalina.sh stop' failed"
+  exit 1
+fi
+
+PID=$ORIG_PID
+
+echo "Waiting for Tomcat to Shutdown.                            |"
+
+loopCount=0
+
+while [ "${PID}" == "${ORIG_PID}" ]
+do
+  ((loopCount=loopCount+1))
+  echo -n "."
+
+  if [ $loopCount -eq 60 ]
+  then
+    echo ""
+    echo "Not shutdown after 1 minute, sending kill signal           |"
+    kill ${ORIG_PID}
+  fi
+
+  if [ $loopCount -eq 120 ]
+  then
+    echo ""
+    echo "Not shutdown after 2 minutes, force killing process        "
+    kill -9 ${ORIG_PID}
+  fi
+
+  if [ $loopCount -gt 145 ]
+  then
+    echo ""
+    echo "Tomcat failed to shutdown, even with 'kill -9' (pid ${PID})"
+    exit 1
+  fi
+
+  sleep 1
+  PID=`pgrep -u tomcat -f "Dcatalina.base=${CATALINA_BASE} " | grep "${ORIG_PID}"`
+done
+
+echo " done"
+
+exit 0

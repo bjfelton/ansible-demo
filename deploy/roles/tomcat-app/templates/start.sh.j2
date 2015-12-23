@@ -1,0 +1,41 @@
+#!/bin/bash
+
+if [ "$(whoami)" != "{{ tomcat_user }}" ]
+then
+        echo "This script should be run as user {{ tomcat_user }}, not $(whoami)"
+        exit 1
+fi
+
+CATALINA_HOME={{ tomcat_home }}
+CATALINA_BASE={{ tomcat_app_base_dir }}/{{ app }}-{{ apps[app]['instance_name'] }}
+JAVA_HOME={{ java_home }}
+{% if java_opts is defined %}
+JAVA_OPTS={{ java_opts }}
+{% endif %}
+export JAVA_HOME JAVA_OPTS CATALINA_HOME CATALINA_BASE
+
+$CATALINA_HOME/bin/catalina.sh start
+
+LOOPS=0
+
+echo "Waiting for Tomcat to Respond. (max wait 2 minutes)        |"
+
+until [ "`curl -x '' --silent --connect-timeout 1 -I 'localhost:{{ apps[app]['http_port'] }}' | grep 'Coyote'`" != "" ]
+do
+  ((LOOPS=LOOPS+1))
+  echo -n "."
+
+  if [ ${LOOPS} -gt 120 ]
+  then
+     echo ""
+     echo "Tomcat failed to respond after 2 minutes"
+     exit 1
+  fi
+
+  sleep 1
+done
+
+echo ""
+echo "done"
+
+exit 0

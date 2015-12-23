@@ -1,0 +1,13 @@
+#!/bin/bash
+
+CATALINA_BASE={{ tomcat_app_base_dir }}/{{ app }}-{{ apps[app]['instance_name'] }}
+
+orig_pid=`pgrep -u tomcat -f "Dcatalina.base=${CATALINA_BASE} " -d ',' | grep -v ','`
+
+if [ -z "${orig_pid}" ]
+then
+  echo "service is not running"
+  exit 1
+fi
+
+exit 0
