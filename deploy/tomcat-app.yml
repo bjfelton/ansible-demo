@@ -1,0 +1,7 @@
+---
+- name: Deploy a tomcat app
+  hosts: tomcat
+  roles:
+  - java
+  - tomcat
+  - tomcat-app
