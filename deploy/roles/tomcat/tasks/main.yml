@@ -12,7 +12,7 @@
 - name: Download tarball
   sudo: no
   run_once: True
-  local_action: wget {{ tomcat_package }} -O /tmp/tomcat.tgz
+  local_action: shell wget {{ tomcat_package }} -O /tmp/tomcat.tgz
 
 - name: Copy package to servers
   copy: src=/tmp/tomcat.tgz dest=/tmp/tomcat.tgz
