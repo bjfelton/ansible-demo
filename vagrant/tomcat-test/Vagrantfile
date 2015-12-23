@@ -7,13 +7,14 @@ VAGRANTFILE_API_VERSION = '2'
 SUBNET         = "192.168.42"
 
 ansible_provision = proc do |ansible|
-  ansible.playbook = '../../automate/tomcat.yml'
+  ansible.playbook = '../../deploy/tomcat-app.yml'
   ansible.groups = {
-    'tomcat'   => ["tomcat0"],
+    'tomcat'   => ["tomcat0"]
   }
 
   ansible.extra_vars = {
-    tomcat_home: '/tomcat8'
+    tomcat_home: '/tomcat8',
+    app: 'sample'
   }
 
   ansible.limit = 'all'
